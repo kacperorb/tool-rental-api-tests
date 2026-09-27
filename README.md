@@ -12,15 +12,15 @@ API testing project covering tool filtering, order management, input validation,
 
 ## Results and findings
 
-The latest recorded runs produced **56 passed tests and 0 failed tests** across three folders:
+The latest runs reported by the project author produced **61 passed tests and 0 failed tests** across three folders:
 
 | Folder | Passed | Failed |
 |---|---:|---:|
-| Tools positive tests | 22 | 0 |
+| Tools positive tests | 27 | 0 |
 | Orders CRUD | 14 | 0 |
 | Orders access control | 20 | 0 |
 
-These are executed Postman test blocks, not 56 distinct business scenarios. Separate negative and boundary tests are excluded from these totals. Results describe the recorded practice runs, not a guarantee of current API behavior.
+These are executed Postman test blocks, not 61 distinct business scenarios. Setup was checked separately: both registration requests passed their status and token checks (4 passed tests in total). Setup, negative and boundary tests are excluded from the table. Results describe those practice runs, not a guarantee of current API behavior.
 
 - **Documented discrepancy:** `results=0` returned HTTP 200 and 20 tools despite the documented range of 1–20.
 - **Clarification needed:** numeric-string tool IDs, whitespace-only customer names and empty category filters were accepted. Their intended handling requires clarification.
@@ -30,11 +30,13 @@ Reproduction steps and observations are included in the relevant request descrip
 ## How to run
 
 1. Import [the collection](Tool-Rental-API.postman_collection.json) and [the environment template](Tool-Rental-API.example.postman_environment.json) into Postman. Select **Tool Rental API — local**.
-2. Register two different API clients using the requests in **Setup**. Use unique fictional email addresses; if registration returns HTTP 409, change the address. Copy each returned `accessToken` into your local environment: client A into `apiToken`, client B into `apiTokenB`. Registration does not save tokens automatically.
+2. Register two different API clients using **Setup → Register client** and **Setup → Register client B**. Both use No Auth and generate fictional email addresses with `{{$guid}}`. Their tests check HTTP 201 and a non-empty string token. Copy each returned `accessToken` into your local environment: client A into `apiToken`, client B into `apiTokenB`. Registration does not save tokens automatically.
 3. Save the requests and run each test folder separately in Collection Runner with **one iteration**, preserving request order. Run Setup only when preparing credentials.
 4. Do not run Orders CRUD and Orders access control concurrently: they share `createdorderId` and `customerName`. Both scenarios create an order and delete it at the end of a successful run.
 
 The template contains the API base URL and empty token fields. Keep actual tokens local. Do not commit environment exports containing credentials. `Get all tools` prepares the variables used by `Get single tool`. Some checks assume the practice inventory contains particular tools or enough matching items. Accepted negative-input requests can create extra orders and do not automatically clean them up.
+
+`Get available tools` and `Get unavailable tools` check `available=true` and `available=false` without an explicit results limit. Results limits are covered in **Tools boundary tests**. Both order-creation requests clear the previous `createdorderId` before sending and save a new ID only when the response has HTTP 201, `created: true` and a non-empty string `orderId`. If creation fails, stop and resolve it before continuing dependent requests; the scripts do not automatically stop the Runner.
 
 **Tools:** Postman, JavaScript, JSON, Collection Runner.  
 **Context:** Portfolio project using a public practice API, developed with AI-assisted guidance and review. This is not a comprehensive security or performance assessment.

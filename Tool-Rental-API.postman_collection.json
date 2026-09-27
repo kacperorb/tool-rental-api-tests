@@ -257,7 +257,7 @@
               "response": []
             },
             {
-              "name": "Get tools by category - empty category - clarification needed",
+              "name": "Get tools by empty category - needs clarification",
               "request": {
                 "method": "GET",
                 "header": [],
@@ -391,7 +391,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nconst response = pm.response.json();\r\n\r\npm.test(\"Each tool has a valid ID\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.id).to.be.above(0);\r\n        pm.expect(tool.id).to.be.a('number');\r\n    })\r\n});\r\n\r\npm.test(\"Response is an array\", function () {\r\n    pm.expect(response).to.be.an('array');\r\n});\r\n\r\npm.test(\"Response has at least one tool\", function () {\r\n    pm.expect(response.length).to.be.above(0);\r\n})\r\n\r\npm.test(\"All tools name are non-empty strings\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.name).to.be.a('string');\r\n        pm.expect(tool.name.length).to.be.at.least(1);\r\n    })\r\n});\r\n\r\npm.test(\"Response contains 2 tools\", function () {\r\n    pm.expect(response.length).to.eql(2);\r\n})\r\n\r\npm.test(\"All tools are in stock\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.inStock).to.be.true;\r\n    })\r\n});"
+                      "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nconst response = pm.response.json();\r\n\r\npm.test(\"Each tool has a valid ID\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.id).to.be.above(0);\r\n        pm.expect(tool.id).to.be.a('number');\r\n    })\r\n});\r\n\r\npm.test(\"Response is an array\", function () {\r\n    pm.expect(response).to.be.an('array');\r\n});\r\n\r\npm.test(\"Response has at least one tool\", function () {\r\n    pm.expect(response.length).to.be.above(0);\r\n})\r\n\r\npm.test(\"All tools name are non-empty strings\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.name).to.be.a('string');\r\n        pm.expect(tool.name.length).to.be.at.least(1);\r\n    })\r\n});\r\n\r\npm.test(\"All tools are in stock\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.inStock).to.be.true;\r\n    })\r\n});"
                     ]
                   }
                 }
@@ -400,7 +400,7 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{baseUrl}}/tools?results=2&available=true",
+                  "raw": "{{baseUrl}}/tools?available=true",
                   "host": [
                     "{{baseUrl}}"
                   ],
@@ -409,17 +409,42 @@
                   ],
                   "query": [
                     {
-                      "key": "results",
-                      "value": "2"
-                    },
-                    {
-                      "key": "category",
-                      "value": "",
-                      "disabled": true
-                    },
-                    {
                       "key": "available",
                       "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get unavailable tools",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nconst response = pm.response.json();\r\n\r\npm.test(\"Each tool has a valid ID\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.id).to.be.above(0);\r\n        pm.expect(tool.id).to.be.a('number');\r\n    })\r\n});\r\n\r\npm.test(\"Response is an array\", function () {\r\n    pm.expect(response).to.be.an('array');\r\n});\r\n\r\npm.test(\"Response has at least one tool\", function () {\r\n    pm.expect(response.length).to.be.above(0);\r\n})\r\n\r\npm.test(\"All tools name are non-empty strings\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.name).to.be.a('string');\r\n        pm.expect(tool.name.length).to.be.at.least(1);\r\n    })\r\n});\r\n\r\npm.test(\"All tools are out of stock\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.inStock).to.be.false;\r\n    })\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?available=false",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "available",
+                      "value": "false"
                     }
                   ]
                 }
@@ -534,7 +559,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Order is created successfuly\", function () {\r\n    pm.expect(response.created).to.be.true;\r\n});\r\n\r\npm.test(\"Order Id is not empty string\", function () {\r\n    pm.expect(response.orderId).to.be.a('string');\r\n    pm.expect(response.orderId.length).to.be.above(0);\r\n});\r\n\r\npm.collectionVariables.set(\"createdorderId\", response.orderId);"
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Order is created successfuly\", function () {\r\n    pm.expect(response.created).to.be.true;\r\n});\r\n\r\npm.test(\"Order Id is not empty string\", function () {\r\n    pm.expect(response.orderId).to.be.a('string');\r\n    pm.expect(response.orderId.length).to.be.above(0);\r\n});\r\n\r\nif (\r\n    pm.response.code === 201 &&\r\n    response.created === true &&\r\n    typeof response.orderId === \"string\" &&\r\n    response.orderId.length > 0\r\n) {\r\n    pm.collectionVariables.set(\"createdorderId\", response.orderId);\r\n}"
                     ]
                   }
                 },
@@ -543,7 +568,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.collectionVariables.set(\"customerName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));"
+                      "pm.collectionVariables.set(\"customerName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));\r\n\r\npm.collectionVariables.unset(\"createdorderId\");"
                     ]
                   }
                 }
@@ -805,7 +830,7 @@
               "response": []
             },
             {
-              "name": "Create order toolId as string",
+              "name": "Create order toolId as string - need clarification",
               "event": [
                 {
                   "listen": "test",
@@ -1135,7 +1160,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Order is created successfuly\", function () {\r\n    pm.expect(response.created).to.be.true;\r\n});\r\n\r\npm.test(\"Order Id is not empty string\", function () {\r\n    pm.expect(response.orderId).to.be.a('string');\r\n    pm.expect(response.orderId.length).to.be.above(0);\r\n});\r\n\r\npm.collectionVariables.set(\"createdorderId\", response.orderId);"
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Order is created successfuly\", function () {\r\n    pm.expect(response.created).to.be.true;\r\n});\r\n\r\npm.test(\"Order Id is not empty string\", function () {\r\n    pm.expect(response.orderId).to.be.a('string');\r\n    pm.expect(response.orderId.length).to.be.above(0);\r\n});\r\n\r\nif (\r\n    pm.response.code === 201 &&\r\n    response.created === true &&\r\n    typeof response.orderId === \"string\" &&\r\n    response.orderId.length > 0\r\n) {\r\n    pm.collectionVariables.set(\"createdorderId\", response.orderId);\r\n}"
                     ]
                   }
                 },
@@ -1144,7 +1169,7 @@
                   "script": {
                     "type": "text/javascript",
                     "exec": [
-                      "pm.collectionVariables.set(\"customerName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));"
+                      "pm.collectionVariables.set(\"customerName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));\r\n\r\npm.collectionVariables.unset(\"createdorderId\");"
                     ]
                   }
                 }
@@ -1516,17 +1541,20 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  ""
+                  "pm.test(\"Status is 201\", function () {\n    pm.response.to.have.status(201);\n});\n\npm.test(\"accessToken is a non-empty string\", function () {\n    var jsonData = pm.response.json();\n    pm.expect(jsonData.accessToken).to.be.a('string').and.not.be.empty;\n});"
                 ]
               }
             }
           ],
           "request": {
+            "auth": {
+              "type": "noauth"
+            },
             "method": "POST",
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"clientName\": \"{{$randomFirstName}}\",\r\n    \"clientEmail\": \"{{$randomFirstName}}@example.com\"\r\n}",
+              "raw": "{\r\n    \"clientName\": \"{{$randomFirstName}}\",\r\n    \"clientEmail\": \"qa-client-a-{{$guid}}@example.com\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -1547,6 +1575,17 @@
         },
         {
           "name": "Register client B",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"accessToken is a non-empty string\", function () {\r\n    var jsonData = pm.response.json();\r\n    pm.expect(jsonData.accessToken).to.be.a('string').and.not.be.empty;\r\n});"
+                ]
+              }
+            }
+          ],
           "request": {
             "auth": {
               "type": "noauth"
@@ -1555,7 +1594,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "{\r\n    \"clientName\": \"QA Client B\",\r\n    \"clientEmail\": \"qa-client-b@example.com\"\r\n}",
+              "raw": "{\r\n    \"clientName\": \"QA Client B\",\r\n    \"clientEmail\": \"qa-client-b{{$guid}}@example.com\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
