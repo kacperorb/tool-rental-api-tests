@@ -1,0 +1,1608 @@
+{
+  "info": {
+    "_postman_id": "2f9f7ebc-63ac-4cb5-a0b0-9319c6b20103",
+    "name": "Tool rental API",
+    "description": "# Configuration\n\nCreate and select a Postman environment containing:\n\n- `baseUrl`:`https://simple-tool-rental-api.click`\n    \n- `apiToken`: a valid token for client A.\n    \n- `apiTokenB`: a valid token for a different client B.\n    \n\nUse the requests in Setup to register clients when needed. Copy each returned `accessToken` into the corresponding environment variable. Registration requests do not save tokens automatically. If registration returns HTTP 409, use another fictional email address.\n\n# Running tests\n\nSave all requests before running. Run each test folder separately in Collection Runner with one iteration preserving the order request.\n\n- Tools positive tests prepares the tool variables used by subsequent requests.\n    \n- Orders CRUD creates, reads, updates and deletes an order.\n    \n- Orders access control creates an order for client A, checks that client B cannot read, update or delete the order, and then deletes it as client A.\n    \n\nDo not run Orders CRUD and Orders access control simultaneously: they share the `createdorderId` and `customerName` collection variables.\n\nRun Setup separately when preparing credentials.\n\n# Known findings\n\n`results=0` returns HTTP 200 instead of the expected HTTP 400. Its test intentionally retains the expected status.\n\nNumeric-string `toolId` values are accepted. Strict type validation requires clarification.\n\nWhitespace-only customer names are accepted. Requires clarification whether they should be rejected.\n\nAn empty category value behaves like an omitted filter in the observed results.\n\nTests based on unresolved requirements may fail. These failures should not automatically be counted as confirmed API defects. The accepted invalid-input scenarios may create orders.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "56381605",
+    "_collection_link": "https://go.postman.co/collection/56381605-2f9f7ebc-63ac-4cb5-a0b0-9319c6b20103?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Status",
+      "item": [
+        {
+          "name": "Status",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/status",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tools",
+      "item": [
+        {
+          "name": "Tools boundary tests",
+          "item": [
+            {
+              "name": "Get all tools boundary 0",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function () {\n    pm.expect(pm.response.code).to.eql(400);\n});\n\nconst response = pm.response.json();"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?results=0",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "results",
+                      "value": "0"
+                    }
+                  ]
+                },
+                "description": "# GET /tools accepts results=0 and returns a 200 instead of 400\n\n**Steps to reproduce:**\n\n1. Send a GET request to [https://simple-tool-rental-api.click/tools?results=0](https://simple-tool-rental-api.click/tools?results=0)\n    \n2. Check the response status and body.\n    \n\n**Actual result:** The API returns HTTP 200 and an array containing a list of 20 tools.\n\n**Expected result:** The API returns HTTP 400, as per documentation, the valid range for results is 1-20."
+              },
+              "response": []
+            },
+            {
+              "name": "Get all tools boundary 1",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {\n    pm.expect(pm.response.code).to.eql(200);\n});\n\nconst response = pm.response.json();\n\npm.test(\"Response length is correct\", function () {\n    pm.expect(response.length).to.eql(1);\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?results=1",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "results",
+                      "value": "1"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get all tools boundary 20",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {\n    pm.expect(pm.response.code).to.eql(200);\n});\n\nconst response = pm.response.json();\n\npm.test(\"Response length is 20\", function () {\n    pm.expect(response.length).to.eql(20);\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?results=20",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "results",
+                      "value": "20"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get all tools boundary 21",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function () {\n    pm.expect(pm.response.code).to.eql(400);\n});\n\nconst response = pm.response.json();\n\npm.test(\"Error message is correct\", function () {\n    pm.expect(response.error).to.eql(\"Invalid value for query parameter 'results'. Cannot be greater than 20.\");\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?results=21",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "results",
+                      "value": "21"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Tools negative tests",
+          "item": [
+            {
+              "name": "Get single - nonexistent toolId",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\nconst toolId = pm.request.url.variables.get(\"toolId\");\r\n\r\npm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});\r\n\r\npm.test(\"Error message is correct\", function () {\r\n    pm.expect(response.error).to.eql(\"No tool with id \" + toolId + \".\");\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools/:toolId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools",
+                    ":toolId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "toolId",
+                      "value": "0"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get tools by category - unknown category",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 400\", function () {\n    pm.response.to.have.status(400);\n});\n\nconst response = pm.response.json();\n\npm.test(\"Error message is correct\", function () {\n    pm.expect(response.error).to.include(\"Invalid value for query parameter 'category'\");\n});\n"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?category=screwdrivers",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "screwdrivers"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get tools by category - empty category - clarification needed",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tools?category=",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": ""
+                    }
+                  ]
+                },
+                "description": "Sending `GET/tools?category=` returns HTTP 200 and 20 tools from multiple categories\n\nClarification needed: Should an empty category be treated as no filter, or be rejected with HTTP 400?\n\nA request without the category parameter returns the same status and toold IDs as a request with `category=`"
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Tools positive tests",
+          "item": [
+            {
+              "name": "Get all tools",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response body is an array with at least 2 items\", function () {\n    pm.expect(response).to.be.an('array').and.to.have.lengthOf.at.least(2);\n});\n\nif (pm.response.code === 200 && Array.isArray(response) && response.length >= 2) {\n    pm.collectionVariables.set(\"selectedToolId\", response[1].id);\n    pm.collectionVariables.set(\"selectedToolName\", response[1].name);\n}\n"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.unset(\"selectedToolId\");\r\npm.collectionVariables.unset(\"selectedToolName\");"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "results",
+                      "value": "20",
+                      "disabled": true
+                    },
+                    {
+                      "key": "category",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "available",
+                      "value": "true",
+                      "disabled": true
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get single tool",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Name is a string\", function (){\r\n    pm.expect(response.name).to.be.a('string');\r\n});\r\n\r\npm.test(\"Name is not empty\", function (){\r\npm.expect(response.name).to.not.be.empty;\r\n});\r\n\r\npm.test(\"instock is a boolean\", function () {\r\n    pm.expect(response.inStock).to.be.a(\"boolean\");\r\n});\r\n\r\npm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"Response ID matches selectedToolId\", function () {\r\n    pm.expect(response.id).to.equal(Number(pm.collectionVariables.get(\"selectedToolId\")));\r\n});\r\n\r\npm.test(\"Response name matches selectedToolName\", function () {\r\n    pm.expect(response.name).to.equal(pm.collectionVariables.get(\"selectedToolName\"));\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools/:toolId",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools",
+                    ":toolId"
+                  ],
+                  "variable": [
+                    {
+                      "key": "toolId",
+                      "value": "{{selectedToolId}}"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get available tools",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\nconst response = pm.response.json();\r\n\r\npm.test(\"Each tool has a valid ID\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.id).to.be.above(0);\r\n        pm.expect(tool.id).to.be.a('number');\r\n    })\r\n});\r\n\r\npm.test(\"Response is an array\", function () {\r\n    pm.expect(response).to.be.an('array');\r\n});\r\n\r\npm.test(\"Response has at least one tool\", function () {\r\n    pm.expect(response.length).to.be.above(0);\r\n})\r\n\r\npm.test(\"All tools name are non-empty strings\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.name).to.be.a('string');\r\n        pm.expect(tool.name.length).to.be.at.least(1);\r\n    })\r\n});\r\n\r\npm.test(\"Response contains 2 tools\", function () {\r\n    pm.expect(response.length).to.eql(2);\r\n})\r\n\r\npm.test(\"All tools are in stock\", function () {\r\n    response.forEach(tool => {\r\n        pm.expect(tool.inStock).to.be.true;\r\n    })\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/tools?results=2&available=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "results",
+                      "value": "2"
+                    },
+                    {
+                      "key": "category",
+                      "value": "",
+                      "disabled": true
+                    },
+                    {
+                      "key": "available",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get tools by category - ladders",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response is a non-empty array\", function () {\n    pm.expect(response).to.be.an('array').and.to.have.length.above(0);\n});\n\npm.test(\"Every tool belongs to the ladders category\", function () {\n    response.forEach(item => {\n        pm.expect(item.category).to.equal('ladders');\n    });\n});\n"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tools?category=ladders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "ladders"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get available tools by category - ladders",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\n\npm.test(\"Status code is 200\", function () {\n    pm.response.to.have.status(200);\n});\n\npm.test(\"Response is a non-empty array\", function () {\n    pm.expect(response).to.be.an('array').and.to.have.length.above(0);\n});\n\npm.test(\"Every tool belongs to the ladders category\", function () {\n    response.forEach(tool => {\n        pm.expect(tool.category).to.equal('ladders');\n    });\n});\n\npm.test(\"Every tool is available\", function () {\n    response.forEach(tool => {\n        pm.expect(tool.inStock).to.be.true;\n    });\n});\n"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tools?category=ladders&available=true",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "tools"
+                  ],
+                  "query": [
+                    {
+                      "key": "category",
+                      "value": "ladders"
+                    },
+                    {
+                      "key": "available",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Orders CRUD",
+          "item": [
+            {
+              "name": "Create order",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Order is created successfuly\", function () {\r\n    pm.expect(response.created).to.be.true;\r\n});\r\n\r\npm.test(\"Order Id is not empty string\", function () {\r\n    pm.expect(response.orderId).to.be.a('string');\r\n    pm.expect(response.orderId.length).to.be.above(0);\r\n});\r\n\r\npm.collectionVariables.set(\"createdorderId\", response.orderId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set(\"customerName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483,\r\n    \"customerName\": \"{{customerName}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get created order",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"response.orderId matches createdorderId\", function () {\r\n    pm.expect(response.orderId).to.eql(pm.collectionVariables.get(\"createdorderId\"));\r\n});\r\n\r\npm.test(\"order has the correct toolID\", function () {\r\n    pm.expect(response.toolId).to.eql(6483);\r\n});\r\n\r\npm.test(\"response.customerName matches customerName\", function () {\r\n    pm.expect(response.customerName).to.eql(pm.collectionVariables.get(\"customerName\"));\r\n    });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update order",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () {\r\n    pm.response.to.have.status(204);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"customerName\": \"Updated Customer\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get updated order",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"response.orderId matches createdorderId\", function () {\r\n    pm.expect(response.orderId).to.eql(pm.collectionVariables.get(\"createdorderId\"));\r\n});\r\n\r\npm.test(\"order has the correct toolID\", function () {\r\n    pm.expect(response.toolId).to.eql(6483);\r\n});\r\n\r\npm.test(\"response.customerName matches Updated customerName\", function () {\r\n    pm.expect(response.customerName).to.eql(\"Updated Customer\");\r\n    });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete order",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () {\r\n    pm.response.to.have.status(204);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get deleted order",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Orders Negative tests",
+          "item": [
+            {
+              "name": "Create order missing toolId",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error message is 'Invalid or missing toolId.'\", function () {\r\n    pm.expect(pm.response.json().error).to.eql(\"Invalid or missing toolId.\");\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"customerName\": \"Validation Test\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order toolId as string",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error message is 'Invalid or missing toolId.'\", function () {\r\n    pm.expect(pm.response.json().error).to.eql(\"Invalid or missing toolId.\");\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": \"6483\",\r\n    \"customerName\": \"Validation Test\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "description": "# POST /orders accepts a string value for toolId\n\n**Steps to reproduce:**\n\n1. Create a POST request to [https://simple-tool-rental-api.click/orders](https://simple-tool-rental-api.click/orders)\n    \n2. Configure Bearer Token authorization using a valid API client token.\n    \n3. Select Body => raw => JSON and enter:  \n    `{   \"toolId\": \"6483\",   \"customerName\": \"Validation Test\"   }`\n    \n4. Send the request and check the response status and body.\n    \n\n**Expected result:** If strict integer validation is required, the API should return HTTP 400 when `toolId` is sent as a string. The documentation specifies an integer but does not explicitly state whether numeric strings may be converted to integers. Clarification needed.\n\n**Actual result:** The API returns HTTP 201 and creates an order despite receiving \"toolId\": \"6483\" as a string. The response contains \"created\": true and an orderId.\n\n**Additional Info:** A nonnumeric string \"abc\" is rejected with HTTP 400. A numeric string \"6483\" is accepted with HTTP 201."
+              },
+              "response": []
+            },
+            {
+              "name": "Create order missing required fields",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order toolId as nonnumeric",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});\r\n\r\npm.test(\"Error message is 'Invalid or missing toolId.'\", function () {\r\n    pm.expect(pm.response.json().error).to.eql(\"Invalid or missing toolId.\");\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": \"abc\",\r\n    \"customerName\": \"Validation Test\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order no token",
+              "event": [
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      ""
+                    ]
+                  }
+                },
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 401\", function () {\n    pm.response.to.have.status(401);\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483,\r\n    \"customerName\": \"Auth Test\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order invalid token",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 401\", function () {\n    pm.response.to.have.status(401);\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer invalid-token"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483,\r\n    \"customerName\": \"Auth Test\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order missing customerName",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Reponse contains a valid error message\", function () {\r\n    pm.expect(response.error).to.eql(\"Invalid or missing customer name.\");\r\n});\r\n\r\npm.test(\"Status code is 400\", function () {\r\n    pm.response.to.have.status(400);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order empty customerName",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Response contains a valid error message\", function () {\r\n    pm.expect(response.error).to.eql(\"Invalid or missing customer name.\");\r\n});\r\n\r\npm.test(\"Status code is 400\", function (){\r\n    pm.response.to.have.status(400);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483,\r\n    \"customerName\": \"\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Create order whitespace customerName - needs clarification",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 400\", function (){\r\n    pm.response.to.have.status(400);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483,\r\n    \"customerName\": \"   \"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                },
+                "description": "# Sending \"customerName\": \" \" returns HTTP 201 and creates an order. Should whitespace only customer names be rejected? Clarification needed."
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "Orders access control",
+          "item": [
+            {
+              "name": "Create order client A",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 201\", function () {\r\n    pm.response.to.have.status(201);\r\n});\r\n\r\npm.test(\"Order is created successfuly\", function () {\r\n    pm.expect(response.created).to.be.true;\r\n});\r\n\r\npm.test(\"Order Id is not empty string\", function () {\r\n    pm.expect(response.orderId).to.be.a('string');\r\n    pm.expect(response.orderId.length).to.be.above(0);\r\n});\r\n\r\npm.collectionVariables.set(\"createdorderId\", response.orderId);"
+                    ]
+                  }
+                },
+                {
+                  "listen": "prerequest",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.collectionVariables.set(\"customerName\", pm.variables.replaceIn(\"{{$randomFirstName}}\"));"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"toolId\": 6483,\r\n    \"customerName\": \"{{customerName}}\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get created order as client A",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"response.orderId matches createdorderId\", function () {\r\n    pm.expect(response.orderId).to.eql(pm.collectionVariables.get(\"createdorderId\"));\r\n});\r\n\r\npm.test(\"order has the correct toolID\", function () {\r\n    pm.expect(response.toolId).to.eql(6483);\r\n});\r\n\r\npm.test(\"response.customerName matches customerName\", function () {\r\n    pm.expect(response.customerName).to.eql(pm.collectionVariables.get(\"customerName\"));\r\n    });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get created order as client B",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{apiTokenB}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Update order as  client B",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "PATCH",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{apiTokenB}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"customerName\": \"Updated Customer\"\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get created order as client A after client B updates",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"response.orderId matches createdorderId\", function () {\r\n    pm.expect(response.orderId).to.eql(pm.collectionVariables.get(\"createdorderId\"));\r\n});\r\n\r\npm.test(\"order has the correct toolID\", function () {\r\n    pm.expect(response.toolId).to.eql(6483);\r\n});\r\n\r\npm.test(\"response.customerName matches customerName\", function () {\r\n    pm.expect(response.customerName).to.eql(pm.collectionVariables.get(\"customerName\"));\r\n    });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete order as  client B",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "auth": {
+                  "type": "noauth"
+                },
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{apiTokenB}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get created order as client A after client B deletes",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "const response = pm.response.json();\r\n\r\npm.test(\"Status is 200\", function () {\r\n    pm.response.to.have.status(200);\r\n});\r\n\r\npm.test(\"response.orderId matches createdorderId\", function () {\r\n    pm.expect(response.orderId).to.eql(pm.collectionVariables.get(\"createdorderId\"));\r\n});\r\n\r\npm.test(\"order has the correct toolID\", function () {\r\n    pm.expect(response.toolId).to.eql(6483);\r\n});\r\n\r\npm.test(\"response.customerName matches customerName\", function () {\r\n    pm.expect(response.customerName).to.eql(pm.collectionVariables.get(\"customerName\"));\r\n    });"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Delete order as client A",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 204\", function () {\r\n    pm.response.to.have.status(204);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "text"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get deleted order as client A",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test(\"Status code is 404\", function () {\r\n    pm.response.to.have.status(404);\r\n});"
+                    ]
+                  }
+                }
+              ],
+              "request": {
+                "method": "GET",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": "",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/orders/{{createdorderId}}",
+                  "host": [
+                    "{{baseUrl}}"
+                  ],
+                  "path": [
+                    "orders",
+                    "{{createdorderId}}"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Setup",
+      "item": [
+        {
+          "name": "Register client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  ""
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientName\": \"{{$randomFirstName}}\",\r\n    \"clientEmail\": \"{{$randomFirstName}}@example.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api-clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api-clients"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register client B",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n    \"clientName\": \"QA Client B\",\r\n    \"clientEmail\": \"qa-client-b@example.com\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api-clients",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api-clients"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{apiToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "createdorderId",
+      "value": ""
+    },
+    {
+      "key": "customerName",
+      "value": ""
+    },
+    {
+      "key": "selectedToolId",
+      "value": ""
+    },
+    {
+      "key": "selectedToolName",
+      "value": ""
+    }
+  ]
+}
